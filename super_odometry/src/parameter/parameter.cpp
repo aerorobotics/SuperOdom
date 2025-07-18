@@ -176,17 +176,11 @@ bool readCalibration(rclcpp::Node::SharedPtr node)
         cv::cv2eigen(cv_R, imu_laser_R);
         cv::cv2eigen(cv_T, imu_laser_T);
         cv::cv2eigen(imu_laser_rotation_offset, imu_laser_offset);
-        // RCLCPP_INFO(node->get_logger(),  "\n imu_laser_R: \n"
-        //           << imu_laser_R;
-        // RCLCPP_INFO(node->get_logger(),  "\n imu_laser_T: \n"
-        //           << imu_laser_T.transpose();
-        
-        // RCLCPP_INFO(node->get_logger(),  "\n imu_laser_rotation_offset: \n" << imu_laser_offset.transpose();
-        
-        // RCLCPP_INFO(node->get_logger(), BLUE <<"\n Before Apply offset on  imu_laser_R : \n"<<RESET
-        //           << imu_laser_R;
-        // RCLCPP_INFO(node->get_logger(), "\n Before Apply offset on  imu_laser_R : \n"
-        //           << imu_laser_R;
+        RCLCPP_INFO_STREAM(node->get_logger(), "\n imu_laser_R: \n" << imu_laser_R);
+        RCLCPP_INFO_STREAM(node->get_logger(), "\n imu_laser_T: \n" << imu_laser_T.transpose());
+        RCLCPP_INFO_STREAM(node->get_logger(), "\n imu_laser_rotation_offset: \n" << imu_laser_offset.transpose());
+        RCLCPP_INFO_STREAM(node->get_logger(), std::string(BLUE) + "\n Before Apply offset on  imu_laser_R : \n" + RESET << imu_laser_R);
+        RCLCPP_INFO_STREAM(node->get_logger(), "\n Before Apply offset on  imu_laser_R : \n" << imu_laser_R);
 
         //previous rotation matrix
         T_i_l = Transformd(imu_laser_R, imu_laser_T);
@@ -222,12 +216,10 @@ bool readCalibration(rclcpp::Node::SharedPtr node)
         tf2::Quaternion orientation_curr(IMU_LASER.x(), IMU_LASER.y(), IMU_LASER.z(), IMU_LASER.w());
         tf2::Matrix3x3(orientation_curr).getRPY(updated_roll, updated_pitch, updated_yaw);
         
-        RCLCPP_INFO(node->get_logger(), GREEN BOLD"\n updated roll: %f updated pitch: %f updated yaw: %f" RESET, updated_roll*180/M_PI, updated_pitch *180/M_PI, updated_yaw*180/M_PI); 
+        RCLCPP_INFO(node->get_logger(), GREEN BOLD "\n updated roll: %f updated pitch: %f updated yaw: %f" RESET, updated_roll * 180 / M_PI, updated_pitch * 180 / M_PI, updated_yaw * 180 / M_PI);
 
-        // RCLCPP_INFO(node->get_logger(), "\n After Apply offset on  imu_laser_R : \n"
-        //           << imu_laser_R; 
-        // RCLCPP_INFO(node->get_logger(), "\n Apply offset on  T_i_l : \n"
-        //           << T_i_l; 
+        RCLCPP_INFO_STREAM(node->get_logger(), "\n After Apply offset on  imu_laser_R : \n" << imu_laser_R);
+        RCLCPP_INFO_STREAM(node->get_logger(), "\n Apply offset on  T_i_l : \n" << T_i_l.matrix());
     }
     else
     {
@@ -239,12 +231,9 @@ bool readCalibration(rclcpp::Node::SharedPtr node)
 
         Tcam_lidar = Transformd(cam_laser_R, cam_laser_T);
 
-        // RCLCPP_INFO(node->get_logger(),  "\n cam_laser_R: \n"
-        //           << cam_laser_R;
-        // RCLCPP_INFO(node->get_logger(),  "\n cam_laser_T: \n"
-        //           << cam_laser_T.transpose();
-        // RCLCPP_INFO(node->get_logger(),  "\n T_cam_lidar: \n"
-        //           << Tcam_lidar;
+        RCLCPP_INFO_STREAM(node->get_logger(),  "\n cam_laser_R: \n" << cam_laser_R);
+        RCLCPP_INFO_STREAM(node->get_logger(),  "\n cam_laser_T: \n" << cam_laser_T.transpose());
+        RCLCPP_INFO_STREAM(node->get_logger(),  "\n T_cam_lidar: \n" << Tcam_lidar.matrix());
 
         fsSettings["extrinsicRotation_imu_camera"] >> cv_R;
         fsSettings["extrinsicTranslation_imu_camera"] >> cv_T;

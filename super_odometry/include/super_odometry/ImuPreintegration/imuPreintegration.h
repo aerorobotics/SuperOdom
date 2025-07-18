@@ -36,6 +36,7 @@
 #include "super_odometry/tic_toc.h"
 #include <glog/logging.h>
 #include "super_odometry/sensor_data/imu/imu_data.h"
+#include <boost/make_shared.hpp>
 
 
 namespace super_odometry {
@@ -149,8 +150,8 @@ namespace super_odometry {
         gtsam::noiseModel::Diagonal::shared_ptr priorBiasNoise;
         gtsam::noiseModel::Diagonal::shared_ptr correctionNoise;
         gtsam::Vector noiseModelBetweenBias;
-        std::shared_ptr<gtsam::PreintegratedImuMeasurements> imuIntegratorOpt_;
-        std::shared_ptr<gtsam::PreintegratedImuMeasurements> imuIntegratorImu_;
+        boost::shared_ptr<gtsam::PreintegratedImuMeasurements> imuIntegratorOpt_;
+        boost::shared_ptr<gtsam::PreintegratedImuMeasurements> imuIntegratorImu_;
         gtsam::Pose3 prevPose_;
         gtsam::Vector3 prevVel_;
         gtsam::NavState prevState_;

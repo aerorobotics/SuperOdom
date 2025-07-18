@@ -56,7 +56,7 @@ namespace super_odometry {
             ProjectName+"/imuodom_path", 1);
         
         // set relevant parameter
-        std::shared_ptr<gtsam::PreintegrationParams> p = gtsam::PreintegrationParams::MakeSharedU(config_.imuGravity);
+        boost::shared_ptr<gtsam::PreintegrationParams> p = gtsam::PreintegrationParams::MakeSharedU(config_.imuGravity);
         
         p->accelerometerCovariance =
                 gtsam::Matrix33::Identity(3, 3) * pow(config_.imuAccNoise, 2); // acc white noise in continuous
@@ -81,8 +81,8 @@ namespace super_odometry {
                 << config_.imuAccBiasN,
                 config_.imuAccBiasN, config_.imuAccBiasN, config_.imuGyrBiasN, config_.imuGyrBiasN, config_.imuGyrBiasN)
                 .finished();
-        imuIntegratorImu_ = std::make_shared<gtsam::PreintegratedImuMeasurements>(p, prior_imu_bias); // setting up the IMU integration for IMU message
-        imuIntegratorOpt_ = std::make_shared<gtsam::PreintegratedImuMeasurements>(p, prior_imu_bias); // setting up the IMU integration for optimization
+        imuIntegratorImu_ = boost::make_shared<gtsam::PreintegratedImuMeasurements>(p, prior_imu_bias); // setting up the IMU integration for IMU message
+        imuIntegratorOpt_ = boost::make_shared<gtsam::PreintegratedImuMeasurements>(p, prior_imu_bias); // setting up the IMU integration for optimization
 
         //set extrinsic matrix for laser and imu
         if (PROVIDE_IMU_LASER_EXTRINSIC) {
@@ -243,6 +243,7 @@ namespace super_odometry {
         imuIntegratorImu_->resetIntegrationAndSetBias(prevBias_);
         imuIntegratorOpt_->resetIntegrationAndSetBias(prevBias_);
 
+
         key = 1;
         systemInitialized = true;
     }
@@ -257,7 +258,7 @@ namespace super_odometry {
             double imuTime = secs(thisImu);
             if (imuTime < currentCorrectionTime - delta_t)
             {
-                double dt = (lastImuT_opt < 0) ? (1.0 / 200.0) : (imuTime - lastImuT_opt);
+                double dt = (lastImuT_opt < 0) ? (1.0 / 400.0) : (imuTime - lastImuT_opt);
                 lastImuT_opt = imuTime;
 
                 if(dt < 0.001 || dt > 0.5) 
@@ -351,7 +352,7 @@ namespace super_odometry {
             for (int i = 0; i < (int)imuQueImu.size(); ++i) {
                 sensor_msgs::msg::Imu *thisImu = &imuQueImu[i];
                 double imuTime = secs(thisImu);
-                double dt = (lastImuQT < 0) ? (1.0 / 200.0) :(imuTime - lastImuQT);
+                double dt = (lastImuQT < 0) ? (1.0 / 400.0) :(imuTime - lastImuQT);
                 lastImuQT = imuTime;
 
                 if(dt < 0.001 || dt > 0.5) 
@@ -407,10 +408,25 @@ namespace super_odometry {
                            biasCur.accelerometer().z());
         Eigen::Vector3f bg(biasCur.gyroscope().x(), biasCur.gyroscope().y(),
                            biasCur.gyroscope().z());
+        // log the accel bias
+        {
+            std::stringstream ss;
+            ss << "CUSTOM LOG: accel bias: [" << ba.x() << ", " << ba.y() << ", " << ba.z() << "]";
+            RCLCPP_INFO(this->get_logger(), "%s", ss.str().c_str());
+        }
 
         if (ba.norm() > 2.0 || bg.norm() > 1.0) {
-            RCLCPP_WARN(this->get_logger(), "Large bias, reset IMU-preintegration!");
+            {
+            std::stringstream ss;
+            ss << "\033[31mCUSTOM LOG: accel bias: [" << ba.x() << ", " << ba.y() << ", " << ba.z() << "]\033[0m";
+            RCLCPP_INFO(this->get_logger(), "%s", ss.str().c_str());
+            }
+            RCLCPP_WARN(this->get_logger(),   "Large bias, reset IMU-preintegration!" );
             return true;
+        } else{
+            std::stringstream ss;
+            ss << "CUSTOM LOG: accel bias: [" << ba.x() << ", " << ba.y() << ", " << ba.z() << "]";
+            RCLCPP_INFO(this->get_logger(), "%s", ss.str().c_str());
         }
 
         return false;
@@ -504,15 +520,24 @@ namespace super_odometry {
 
         // rotate acceleration
         Eigen::Vector3d acc(imu_in.linear_acceleration.x,
-                            imu_in.linear_acceleration.y,
-                            imu_in.linear_acceleration.z);
-
+            imu_in.linear_acceleration.y,
+            imu_in.linear_acceleration.z);
+            
+            // {
+            //     std::stringstream ss;
+            //     ss << "CUSTOM LOG: imuConverter before: \n" << acc.transpose();
+            //     RCLCPP_INFO(this->get_logger(), "%s", ss.str().c_str());
+            // }
         acc=imu_laser_R_Gravity*acc;
-        acc = acc + ((gyr - gyr_pre) * 200).cross(- imu_laser_T) + gyr.cross(gyr.cross(-imu_laser_T));
+        acc = acc + ((gyr - gyr_pre) * 400).cross(- imu_laser_T) + gyr.cross(gyr.cross(-imu_laser_T));
         imu_out.linear_acceleration.x = acc.x();
         imu_out.linear_acceleration.y = acc.y();
         imu_out.linear_acceleration.z = acc.z();
-
+        // {
+        //     std::stringstream ss;
+        //     ss << "CUSTOM LOG: imuConverter after: \n" << acc.transpose();
+        //     RCLCPP_INFO(this->get_logger(), "%s", ss.str().c_str());
+        // }
 
         // rotate roll pitch yaw
         Eigen::Quaterniond q(imu_in.orientation.w, imu_in.orientation.x,
@@ -546,6 +571,18 @@ namespace super_odometry {
     
     // 1. Pre-process IMU data
     sensor_msgs::msg::Imu thisImu = imuConverter(*imu_raw);
+        //     {
+        //     std::stringstream ss;
+        //     ss << "CUSTOM LOG: acc before: [" << imu_raw->linear_acceleration.x << ", " 
+        //        << imu_raw->linear_acceleration.y << ", " << imu_raw->linear_acceleration.z << "]";
+        //     RCLCPP_INFO(this->get_logger(), "%s", ss.str().c_str());    
+        // }
+        //     {
+        //     std::stringstream ss;
+        //     ss << "CUSTOM LOG: acc after: [" << thisImu.linear_acceleration.x << ", " 
+        //        << thisImu.linear_acceleration.y << ", " << thisImu.linear_acceleration.z << "]";
+        //     RCLCPP_INFO(this->get_logger(), "%s", ss.str().c_str());
+        // }
     assert(imu_raw->linear_acceleration.x != thisImu.linear_acceleration.x);
 
     // 2. Handle IMU initialization for LIVOX sensor
@@ -626,7 +663,7 @@ void imuPreintegration::correctLivoxGravity(sensor_msgs::msg::Imu& thisImu) {
 
 void imuPreintegration::processTiming(const sensor_msgs::msg::Imu& thisImu) {
     double imuTime = secs(&thisImu);
-    double dt = (lastImuT_imu < 0) ? (1.0 / 200.0) : (imuTime - lastImuT_imu);
+    double dt = (lastImuT_imu < 0) ? (1.0 / 400.0) : (imuTime - lastImuT_imu);
     lastImuT_imu = imuTime;
     
     if (dt < 0.001 || dt > 0.5) {

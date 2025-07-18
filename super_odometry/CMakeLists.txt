@@ -51,7 +51,7 @@ find_package(Ceres REQUIRED)
 find_package(GTSAM REQUIRED QUIET)
 find_package(TBB REQUIRED)
 find_package(livox_ros_driver2 REQUIRED)
-
+find_package(rosidl_default_generators REQUIRED)
 # Include directories
 include_directories(
   include
@@ -149,6 +149,25 @@ target_link_libraries(laser_mapping_node
     SuperOdomLib
 )
 
+# Generate service interfaces
+rosidl_generate_interfaces(${PROJECT_NAME}
+  srv/SavePointMap.srv
+  DEPENDENCIES sensor_msgs super_odometry_msgs std_msgs
+)
+
+# Map Service node
+add_executable(map_node src/map_node.cpp)
+ament_target_dependencies(map_node rclcpp sensor_msgs pcl_conversions)
+target_link_libraries(map_node
+    ${PCL_LIBRARIES}
+    SuperOdomLib
+)
+
+# Link against the generated service interface
+rosidl_target_interfaces(map_node
+  ${PROJECT_NAME} "rosidl_typesupport_cpp"
+)
+
 # Install Exported Libraries
 ament_export_targets(export_super_odometry HAS_LIBRARY_TARGET)
 
@@ -174,6 +193,7 @@ install(TARGETS
   imu_preintegration_node
   feature_extraction_node
   laser_mapping_node
+  map_node
   DESTINATION lib/${PROJECT_NAME}
 )
 

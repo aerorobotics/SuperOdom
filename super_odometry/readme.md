@@ -30,3 +30,65 @@ timespan x        y        z      roll     pitch     yaw
 
 ## Test Bag file
 https://drive.google.com/drive/u/0/folders/1R8Tx8nLDC184gjUaMPZjTiklIhsH7RLV
+
+## Map Service (DLIO-style)
+
+SuperOdometry includes a DLIO-style map saving service that allows you to save the complete map as PCD files.
+
+### Usage
+
+**Launch the map service:**
+```bash
+ros2 launch super_odometry map_service.launch.py leaf_size:=0.2 save_path:=maps
+```
+
+**Save the map:**
+```bash
+ros2 service call /save_pcd super_odometry/srv/SavePCD "{'leaf_size': 0.2, 'save_path': 'maps'}"
+```
+
+### Service Details
+
+- **Service Name**: `/save_pcd`
+- **Service Type**: `super_odometry/srv/SavePCD`
+- **Input**: 
+  - `leaf_size`: Voxel grid leaf size for filtering
+  - `save_path`: Directory path to save the PCD file
+- **Output**: 
+  - `success`: Boolean indicating if save was successful
+
+### File Format
+
+- **Format**: Binary PCD
+- **Filename**: `superodom_map.pcd` (fixed name, like DLIO)
+- **Content**: Complete map with XYZ coordinates and intensity values
+- **Filtering**: Voxel grid filtering applied before saving
+
+### Console Output
+
+The service provides DLIO-style console output:
+```
+Saving map to maps/superodom_map.pcd with leaf size 0.20... done
+```
+
+### Complete Workflow
+
+1. **Start SuperOdometry**:
+   ```bash
+   ros2 launch super_odometry vlp_16.launch.py
+   ```
+
+2. **Start the Map Service**:
+   ```bash
+   ros2 launch super_odometry map_service.launch.py leaf_size:=0.2 save_path:=maps
+   ```
+
+3. **Play your data**:
+   ```bash
+   ros2 bag play your_data.db3
+   ```
+
+4. **Save the map when ready**:
+   ```bash
+   ros2 service call /save_pcd super_odometry/srv/SavePCD "{'leaf_size': 0.2, 'save_path': 'maps'}"
+   ```

@@ -180,12 +180,12 @@ public:
 
     return rpy;
 }
-
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   double gravity_norm = 9.8105;
   bool first_imu = true;
   double time;
-  double imu_frequency = 200.0; // default 200 Hz
+  // Shared global variable for IMU frequency, accessible across the package
+  double imu_frequency = 400.0; // default 200 Hz
   Eigen::Vector3d gravity;
   Eigen::Vector3d gyr_bias;
   Eigen::Vector3d acc_bias;
