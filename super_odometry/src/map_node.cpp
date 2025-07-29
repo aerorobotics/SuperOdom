@@ -39,6 +39,7 @@ private:
         const std::shared_ptr<super_odometry::srv::SavePointMap::Request> req,
         std::shared_ptr<super_odometry::srv::SavePointMap::Response> res)
     {
+        RCLCPP_INFO(this->get_logger(), "Saving map to %s with leaf size %.2f...", req->save_path.c_str(), req->leaf_size);
         auto filtered_map = pcl::PointCloud<pcl::PointXYZI>::Ptr(new pcl::PointCloud<pcl::PointXYZI>(*map_));
         pcl::VoxelGrid<pcl::PointXYZI> vg;
         vg.setLeafSize(req->leaf_size, req->leaf_size, req->leaf_size);
