@@ -409,24 +409,24 @@ namespace super_odometry {
         Eigen::Vector3f bg(biasCur.gyroscope().x(), biasCur.gyroscope().y(),
                            biasCur.gyroscope().z());
         // log the accel bias
-        {
-            std::stringstream ss;
-            ss << "CUSTOM LOG: accel bias: [" << ba.x() << ", " << ba.y() << ", " << ba.z() << "]";
-            RCLCPP_INFO(this->get_logger(), "%s", ss.str().c_str());
-        }
+        // {
+        //     std::stringstream ss;
+        //     ss << "CUSTOM LOG: accel bias: [" << ba.x() << ", " << ba.y() << ", " << ba.z() << "]";
+        //     RCLCPP_INFO(this->get_logger(), "%s", ss.str().c_str());
+        // }
 
         if (ba.norm() > 2.0 || bg.norm() > 1.0) {
-            {
-            std::stringstream ss;
-            ss << "\033[31mCUSTOM LOG: accel bias: [" << ba.x() << ", " << ba.y() << ", " << ba.z() << "]\033[0m";
-            RCLCPP_INFO(this->get_logger(), "%s", ss.str().c_str());
-            }
+            // {
+            // std::stringstream ss;
+            // ss << "\033[31mCUSTOM LOG: accel bias: [" << ba.x() << ", " << ba.y() << ", " << ba.z() << "]\033[0m";
+            // RCLCPP_INFO(this->get_logger(), "%s", ss.str().c_str());
+            // }
             RCLCPP_WARN(this->get_logger(),   "Large bias, reset IMU-preintegration!" );
             return true;
         } else{
-            std::stringstream ss;
-            ss << "CUSTOM LOG: accel bias: [" << ba.x() << ", " << ba.y() << ", " << ba.z() << "]";
-            RCLCPP_INFO(this->get_logger(), "%s", ss.str().c_str());
+            // std::stringstream ss;
+            // ss << "CUSTOM LOG: accel bias: [" << ba.x() << ", " << ba.y() << ", " << ba.z() << "]";
+            // RCLCPP_INFO(this->get_logger(), "%s", ss.str().c_str());
         }
 
         return false;

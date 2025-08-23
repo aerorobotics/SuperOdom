@@ -7,6 +7,8 @@
 #include <pcl/io/pcd_io.h>
 #include <memory>
 #include <string>
+#include <experimental/filesystem>
+#include <filesystem>
 
 // Include the new service definition
 #include "super_odometry/srv/save_point_map.hpp"
@@ -39,17 +41,18 @@ private:
         const std::shared_ptr<super_odometry::srv::SavePointMap::Request> req,
         std::shared_ptr<super_odometry::srv::SavePointMap::Response> res)
     {
-        RCLCPP_INFO(this->get_logger(), "Saving map to %s with leaf size %.2f...", req->save_path.c_str(), req->leaf_size);
         auto filtered_map = pcl::PointCloud<pcl::PointXYZI>::Ptr(new pcl::PointCloud<pcl::PointXYZI>(*map_));
         pcl::VoxelGrid<pcl::PointXYZI> vg;
         vg.setLeafSize(req->leaf_size, req->leaf_size, req->leaf_size);
         vg.setInputCloud(filtered_map);
         vg.filter(*filtered_map);
 
+        // create directory if it doesn't exist
+        std::filesystem::create_directories(req->save_path);
         std::string filename = req->save_path + "/superodom_map.pcd";
         int ret = pcl::io::savePCDFileBinary(filename, *filtered_map);
         res->success = (ret == 0);
-        RCLCPP_INFO(this->get_logger(), "Saving map to %s with leaf size %.2f... %s",
+        RCLCPP_INFO(this->get_logger(), "\033[31mSaving map to %s with leaf size %.2f... %s\033[0m",
                     filename.c_str(), req->leaf_size, res->success ? "done" : "failed");
     }
 
